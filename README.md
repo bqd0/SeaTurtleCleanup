@@ -36,4 +36,4 @@ The game runs directly in a modern web browser and does not require installation
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+SeaTurtleCleanup is free to use, copy, modify, and share under the MIT License. See the [LICENSE](LICENSE.md) file for the complete license terms.
