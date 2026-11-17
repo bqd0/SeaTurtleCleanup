@@ -37,6 +37,7 @@
 
         .hud {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             gap: 12px;
             margin-bottom: 10px;
@@ -198,6 +199,7 @@
 
             .message-card p {
                 margin: 0 0 16px;
+                white-space: pre-line;
             }
 
         button {
@@ -233,8 +235,10 @@
         <p class="credits">En spelidé av Miranda, utvecklad tillsammans med pappa.</p>
 
         <div class="hud">
-            <span>Rengjorda: <span id="score">0</span>/<span id="total">8</span></span>
-            <span>Tid: <span id="time">30</span> s</span>
+            <span>Borttvättade fläckar: <span id="score">0</span>/<span id="total">8</span></span>
+            <span>Tid kvar: <span id="time">30</span> s</span>
+            <span>Rengjorda skal: <span id="cleanedTurtles">0</span></span>
+            <span>Rekordtid: <span id="bestTime">–</span></span>
         </div>
 
         <section class="ocean" id="ocean" aria-label="Havssköldpaddans Städäventyr">
@@ -262,39 +266,51 @@
     </main>
 
     <script>const spotsContainer = document.querySelector("#spots");
-    const scoreDisplay = document.querySelector("#score");
-    const timeDisplay = document.querySelector("#time");
-    const totalDisplay = document.querySelector("#total");
-    const message = document.querySelector("#message");
-    const resultTitle = document.querySelector("#resultTitle");
-    const resultText = document.querySelector("#resultText");
-    const startButton = document.querySelector("#startButton");
+const scoreDisplay = document.querySelector("#score");
+const timeDisplay = document.querySelector("#time");
+const totalDisplay = document.querySelector("#total");
+const cleanedTurtlesDisplay = document.querySelector("#cleanedTurtles");
+const bestTimeDisplay = document.querySelector("#bestTime");
+const message = document.querySelector("#message");
+const resultTitle = document.querySelector("#resultTitle");
+const resultText = document.querySelector("#resultText");
+const startButton = document.querySelector("#startButton");
 
-    const totalSpots = 8;
-    const gameLength = 30;
-    let score = 0;
-    let timeLeft = gameLength;
-    let timer;
-    let playing = false;
+const totalSpots = 8;
+const gameLength = 30;
+const cleanedTurtlesKey = "cleanedTurtles";
+const bestTimeKey = "bestTime";
 
-    // Spot positions are percentages within the ocean scene.
-    const positions = [
-      [43, 38], [51, 35], [58, 42], [45, 49],
-      [55, 52], [40, 58], [60, 60], [50, 66]
-    ];
+let score = 0;
+let timeLeft = gameLength;
+let timer;
+let playing = false;
+let cleanedTurtles = Number(localStorage.getItem(cleanedTurtlesKey)) || 0;
+let bestTime = Number(localStorage.getItem(bestTimeKey)) || null;
+let startTime;
 
-    totalDisplay.textContent = totalSpots;
+totalDisplay.textContent = totalSpots;
+cleanedTurtlesDisplay.textContent = cleanedTurtles;
+bestTimeDisplay.textContent =
+    bestTime === null ? "–" : `${bestTime.toFixed(3)} s`;
 
-    function startGame() {
-      score = 0;
-      timeLeft = gameLength;
-      playing = true;
-      scoreDisplay.textContent = score;
-      timeDisplay.textContent = timeLeft;
-      spotsContainer.innerHTML = "";
-      message.classList.add("hidden");
+const positions = [
+    [43, 38], [51, 35], [58, 42], [45, 49],
+    [55, 52], [40, 58], [60, 60], [50, 66]
+];
 
-      positions.forEach(([x, y]) => {
+function startGame() {
+    score = 0;
+    timeLeft = gameLength;
+    playing = true;
+    startTime = performance.now();
+
+    scoreDisplay.textContent = score;
+    timeDisplay.textContent = timeLeft;
+    spotsContainer.innerHTML = "";
+    message.classList.add("hidden");
+
+    positions.forEach(([x, y]) => {
         const spot = document.createElement("button");
         spot.className = "spot";
         spot.textContent = "✦";
@@ -303,36 +319,61 @@
         spot.style.top = `${y}%`;
 
         spot.addEventListener("click", () => {
-          if (!playing || spot.classList.contains("cleaned")) return;
-          spot.classList.add("cleaned");
-          score++;
-          scoreDisplay.textContent = score;
+            if (!playing || spot.classList.contains("cleaned")) return;
 
-          if (score === totalSpots) endGame(true);
+            spot.classList.add("cleaned");
+            score++;
+            scoreDisplay.textContent = score;
+
+            if (score === totalSpots) {
+                endGame(true);
+            }
         });
 
         spotsContainer.appendChild(spot);
-      });
+    });
 
-      clearInterval(timer);
-      timer = setInterval(() => {
+    clearInterval(timer);
+    timer = setInterval(() => {
         timeLeft--;
         timeDisplay.textContent = timeLeft;
-        if (timeLeft <= 0) endGame(false);
-      }, 1000);
+
+        if (timeLeft <= 0) {
+            endGame(false);
+        }
+    }, 1000);
+}
+
+function endGame(won) {
+    playing = false;
+    clearInterval(timer);
+
+    if (won) {
+        const completionTime = (performance.now() - startTime) / 1000;
+
+        cleanedTurtles++;
+        localStorage.setItem(cleanedTurtlesKey, cleanedTurtles);
+        cleanedTurtlesDisplay.textContent = cleanedTurtles;
+
+        if (bestTime === null || completionTime < bestTime) {
+            bestTime = completionTime;
+            localStorage.setItem(bestTimeKey, bestTime);
+            bestTimeDisplay.textContent = `${bestTime.toFixed(3)} s`;
+        }
+
+        resultTitle.textContent = "Sjöbris är helt ren!";
+        resultText.textContent =
+            `Bra jobbat! Du rengjorde henne\npå ${completionTime.toFixed(3)} sekunder.`;
+    } else {
+        resultTitle.textContent = "Tiden är slut!";
+        resultText.textContent =
+            `Du rengjorde ${score} av ${totalSpots} fläckar.\nVill du försöka igen?`;
     }
 
-    function endGame(won) {
-      playing = false;
-      clearInterval(timer);
-      resultTitle.textContent = won ? "Sjöbris är helt ren!" : "Time's up!";
-      resultText.textContent = won
-        ? "Bra jobbat! Sjöbris kan simma glatt igen."
-        : `Du rengjorde ${score} av ${totalSpots} fläckar. Vill du försöka igen?`;
-      startButton.textContent = "Spela igen";
-      message.classList.remove("hidden");
-    }
+    startButton.textContent = "Spela igen";
+    message.classList.remove("hidden");
+}
 
-    startButton.addEventListener("click", startGame);</script>
+startButton.addEventListener("click", startGame);</script>
 </body>
 </html>
