@@ -65,6 +65,11 @@
             width: 270px;
             height: 230px;
             transform: translate(-50%, -50%);
+            --shell-light: #72b968;
+            --shell-dark: #367a53;
+            --flipper-color: #5da85c;
+            --outline-color: #245c3b;
+            --head-color: #82c977;
         }
 
         .flipper {
@@ -75,6 +80,8 @@
             border: 3px solid #367a53;
             border-radius: 70% 35% 70% 35%;
             background: #72b968;
+            border-color: var(--outline-color);
+            background: var(--flipper-color);
         }
 
             .flipper.one {
@@ -111,8 +118,12 @@
             transform: translate(-50%, -50%);
             border: 6px solid #376a47;
             border-radius: 48% 48% 45% 45%;
-            background: linear-gradient(35deg, transparent 48%, #376a47 49% 51%, transparent 52%), linear-gradient(-35deg, transparent 48%, #376a47 49% 51%, transparent 52%), radial-gradient(ellipse, #a6c85c, #638c43);
-            box-shadow: inset 0 0 0 7px #9cbd58;
+            border-color: var(--outline-color);
+            background:
+                linear-gradient(35deg, transparent 48%, var(--outline-color) 49% 51%, transparent 52%),
+                linear-gradient(-35deg, transparent 48%, var(--outline-color) 49% 51%, transparent 52%),
+                radial-gradient(ellipse, var(--shell-light), var(--shell-dark));
+            box-shadow: inset 0 0 0 7px var(--shell-light);
         }
 
         .head {
@@ -124,7 +135,8 @@
             height: 58px;
             border: 3px solid #367a53;
             border-radius: 55% 48% 48% 55%;
-            background: #83c76b;
+            border-color: var(--outline-color);
+            background: var(--head-color);
         }
 
         .eye {
@@ -226,12 +238,29 @@
             color: #c3f5eb;
             font-size: .95rem;
         }
+
+        .turtle-name {
+            position: absolute;
+            left: 50%;
+            bottom: -34px;
+            z-index: 4;
+            transform: translateX(-50%);
+            padding: 5px 14px;
+            border: 2px solid #ffffff99;
+            border-radius: 999px;
+            color: #fff8c7;
+            background: #07536bcc;
+            font-size: 1.1rem;
+            font-weight: 800;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px #00384f;
+        }
     </style>
 </head>
 <body>
     <main class="game">
         <h1>Havssköldpaddans Städäventyr</h1>
-        <p class="intro">Hjälp Sjöbris att må bättre genom att tvätta bort smutsen från hennes skal!</p>
+        <p class="intro">Hjälp <span class="turtle-name-display">Sjöbris</span> att må bättre genom att tvätta bort smutsen från hennes skal!</p>
         <p class="credits">En spelidé av Miranda, utvecklad tillsammans med pappa.</p>
 
         <div class="hud">
@@ -242,13 +271,14 @@
         </div>
 
         <section class="ocean" id="ocean" aria-label="Havssköldpaddans Städäventyr">
-            <div class="turtle" aria-label="Cartoon sea turtle">
+            <div class="turtle" id="turtle" aria-label="Sjöbris, en tecknad havssköldpadda">
                 <div class="flipper one"></div>
                 <div class="flipper two"></div>
                 <div class="flipper three"></div>
                 <div class="flipper four"></div>
                 <div class="shell"></div>
                 <div class="head"><span class="eye"></span></div>
+                <div class="turtle-name" id="turtleNameLabel">Sjöbris</div>
             </div>
 
             <div id="spots"></div>
@@ -262,7 +292,7 @@
             </div>
         </section>
 
-        <p class="hint">Tryck eller klicka på de bruna fläckarna för att rengöra dem. Var försiktig med Sjöbris!</p>
+        <p class="hint">Tryck eller klicka på de bruna fläckarna för att rengöra sköldpaddan. Var försiktig med <span class="turtle-name-display">Sjöbris</span>!</p>
     </main>
 
     <script>const spotsContainer = document.querySelector("#spots");
@@ -271,6 +301,9 @@ const timeDisplay = document.querySelector("#time");
 const totalDisplay = document.querySelector("#total");
 const cleanedTurtlesDisplay = document.querySelector("#cleanedTurtles");
 const bestTimeDisplay = document.querySelector("#bestTime");
+const turtleElement = document.querySelector("#turtle");
+const turtleNameDisplays = document.querySelectorAll(".turtle-name-display");
+const turtleNameLabel = document.querySelector("#turtleNameLabel");
 const message = document.querySelector("#message");
 const resultTitle = document.querySelector("#resultTitle");
 const resultText = document.querySelector("#resultText");
@@ -281,6 +314,90 @@ const gameLength = 30;
 const cleanedTurtlesKey = "cleanedTurtles";
 const bestTimeKey = "bestTime";
 
+const turtles = [
+    {
+        name: "Sjöbris",
+        colors: {
+            shellLight: "#72b968",
+            shellDark: "#367a53",
+            flipper: "#5da85c",
+            outline: "#245c3b",
+            head: "#82c977"
+        }
+    },
+    {
+        name: "Snäckis",
+        colors: {
+            shellLight: "#ffe6a3",
+            shellDark: "#c99242",
+            flipper: "#f2cb72",
+            outline: "#94652b",
+            head: "#f7d88a"
+        }
+    },
+    {
+        name: "Bärnsten",
+        colors: {
+            shellLight: "#ffbf45",
+            shellDark: "#a85d18",
+            flipper: "#e99b2e",
+            outline: "#7d4215",
+            head: "#f3ad38"
+        }
+    },
+    {
+        name: "Tindra",
+        colors: {
+            shellLight: "#fff09a",
+            shellDark: "#d5a82f",
+            flipper: "#f5d85f",
+            outline: "#9b751d",
+            head: "#ffe47b"
+        }
+    },
+    {
+        name: "Plaskis",
+        colors: {
+            shellLight: "#72b968",
+            shellDark: "#367a53",
+            flipper: "#5da85c",
+            outline: "#245c3b",
+            head: "#82c977"
+        }
+    },
+    {
+        name: "Solglimt",
+        colors: {
+            shellLight: "#fff5b0",
+            shellDark: "#d8b63d",
+            flipper: "#f8dc6c",
+            outline: "#a08322",
+            head: "#ffeb86"
+        }
+    },
+    {
+        name: "Pärla",
+        colors: {
+            shellLight: "#fffafd",
+            shellDark: "#e5b7c8",
+            flipper: "#f8d9e4",
+            outline: "#a96f86",
+            head: "#ffe8f0"
+        }
+    },
+    {
+        name: "Lilla Vågen",
+        colors: {
+            shellLight: "#bafff0",
+            shellDark: "#159a9c",
+            flipper: "#59ddc8",
+            outline: "#075b70",
+            head: "#8ff5df"
+        }
+    }
+];
+
+let currentTurtleIndex = 0;
 let score = 0;
 let timeLeft = gameLength;
 let timer;
@@ -289,17 +406,41 @@ let cleanedTurtles = Number(localStorage.getItem(cleanedTurtlesKey)) || 0;
 let bestTime = Number(localStorage.getItem(bestTimeKey)) || null;
 let startTime;
 
-totalDisplay.textContent = totalSpots;
-cleanedTurtlesDisplay.textContent = cleanedTurtles;
-bestTimeDisplay.textContent =
-    bestTime === null ? "–" : `${bestTime.toFixed(3)} s`;
-
 const positions = [
     [43, 38], [51, 35], [58, 42], [45, 49],
     [55, 52], [40, 58], [60, 60], [50, 66]
 ];
 
+totalDisplay.textContent = totalSpots;
+cleanedTurtlesDisplay.textContent = cleanedTurtles;
+bestTimeDisplay.textContent =
+    bestTime === null ? "–" : `${bestTime.toFixed(3)} s`;
+
+function updateTurtleAppearance() {
+    const turtle = turtles[currentTurtleIndex];
+    const colors = turtle.colors;
+
+    turtleNameDisplays.forEach((nameDisplay) => {
+        nameDisplay.textContent = turtle.name;
+    });
+
+    turtleNameLabel.textContent = turtle.name;
+
+    turtleElement.setAttribute(
+        "aria-label",
+        `${turtle.name}, en tecknad havssköldpadda`
+    );
+
+    turtleElement.style.setProperty("--shell-light", colors.shellLight);
+    turtleElement.style.setProperty("--shell-dark", colors.shellDark);
+    turtleElement.style.setProperty("--flipper-color", colors.flipper);
+    turtleElement.style.setProperty("--outline-color", colors.outline);
+    turtleElement.style.setProperty("--head-color", colors.head);
+}
+
 function startGame() {
+    updateTurtleAppearance();
+
     score = 0;
     timeLeft = gameLength;
     playing = true;
@@ -312,6 +453,7 @@ function startGame() {
 
     positions.forEach(([x, y]) => {
         const spot = document.createElement("button");
+
         spot.className = "spot";
         spot.textContent = "✦";
         spot.setAttribute("aria-label", "Rengör smutsfläck");
@@ -319,7 +461,9 @@ function startGame() {
         spot.style.top = `${y}%`;
 
         spot.addEventListener("click", () => {
-            if (!playing || spot.classList.contains("cleaned")) return;
+            if (!playing || spot.classList.contains("cleaned")) {
+                return;
+            }
 
             spot.classList.add("cleaned");
             score++;
@@ -334,6 +478,7 @@ function startGame() {
     });
 
     clearInterval(timer);
+
     timer = setInterval(() => {
         timeLeft--;
         timeDisplay.textContent = timeLeft;
@@ -348,6 +493,8 @@ function endGame(won) {
     playing = false;
     clearInterval(timer);
 
+    const turtle = turtles[currentTurtleIndex];
+
     if (won) {
         const completionTime = (performance.now() - startTime) / 1000;
 
@@ -361,19 +508,33 @@ function endGame(won) {
             bestTimeDisplay.textContent = `${bestTime.toFixed(3)} s`;
         }
 
-        resultTitle.textContent = "Sjöbris är helt ren!";
+        const completedLastTurtle = currentTurtleIndex === turtles.length - 1;
+
+        currentTurtleIndex = (currentTurtleIndex + 1) % turtles.length;
+
+        const nextTurtleName = turtles[currentTurtleIndex].name;
+
+        resultTitle.textContent = `${turtle.name} är helt ren!`;
         resultText.textContent =
-            `Bra jobbat! Du rengjorde henne\npå ${completionTime.toFixed(3)} sekunder.`;
+            `Bra jobbat! Du rengjorde henne\npå ${completionTime.toFixed(3)} sekunder.\n` +
+            `${completedLastTurtle ? "Alla sköldpaddor är klara!\n" : ""}` +
+            `Nästa sköldpadda är ${nextTurtleName}.`;
+
+        startButton.textContent = completedLastTurtle
+            ? "Börja om med Sjöbris"
+            : `Rengör ${nextTurtleName}`;
     } else {
         resultTitle.textContent = "Tiden är slut!";
         resultText.textContent =
-            `Du rengjorde ${score} av ${totalSpots} fläckar.\nVill du försöka igen?`;
+            `Du rengjorde ${score} av ${totalSpots} fläckar på ${turtle.name}.\nVill du försöka igen?`;
+        startButton.textContent = `Försök igen med ${turtle.name}`;
     }
 
-    startButton.textContent = "Spela igen";
     message.classList.remove("hidden");
 }
 
-startButton.addEventListener("click", startGame);</script>
+        updateTurtleAppearance();
+        startButton.addEventListener("click", startGame);
+</script>
 </body>
 </html>
