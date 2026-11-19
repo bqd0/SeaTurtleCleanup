@@ -255,6 +255,34 @@
             white-space: nowrap;
             text-shadow: 0 1px 2px #00384f;
         }
+
+        .stars {
+            position: absolute;
+            top: -42px;
+            left: 50%;
+            z-index: 4;
+            display: flex;
+            gap: 3px;
+            transform: translateX(-50%);
+            color: #ffffff66;
+            font-size: 2.0rem;
+            line-height: 1;
+            text-shadow: 0 1px 2px #00384f;
+            white-space: nowrap;
+        }
+
+        .star {
+            transition: color .25s, text-shadow .25s, transform .25s;
+        }
+
+        .star.lit {
+            color: #fff3a3;
+            text-shadow:
+                0 0 4px #fff8c7,
+                0 0 10px #ffe66d,
+                0 1px 2px #00384f;
+            transform: scale(1.12);
+        }
     </style>
 </head>
 <body>
@@ -272,6 +300,19 @@
 
         <section class="ocean" id="ocean" aria-label="Havssköldpaddans Städäventyr">
             <div class="turtle" id="turtle" aria-label="Sjöbris, en tecknad havssköldpadda">
+                <div class="stars" id="stars" aria-label="Framsteg">
+                    <span class="star" aria-label="Stjärna 1">★</span>
+                    <span class="star" aria-label="Stjärna 2">★</span>
+                    <span class="star" aria-label="Stjärna 3">★</span>
+                    <span class="star" aria-label="Stjärna 4">★</span>
+                    <span class="star" aria-label="Stjärna 5">★</span>
+                    <span class="star" aria-label="Stjärna 6">★</span>
+                    <span class="star" aria-label="Stjärna 7">★</span>
+                    <span class="star" aria-label="Stjärna 8">★</span>
+                    <span class="star" aria-label="Stjärna 9">★</span>
+                    <span class="star" aria-label="Stjärna 10">★</span>
+                </div>
+
                 <div class="flipper one"></div>
                 <div class="flipper two"></div>
                 <div class="flipper three"></div>
@@ -308,6 +349,8 @@ const message = document.querySelector("#message");
 const resultTitle = document.querySelector("#resultTitle");
 const resultText = document.querySelector("#resultText");
 const startButton = document.querySelector("#startButton");
+const starsContainer = document.querySelector("#stars");
+const stars = document.querySelectorAll(".star");
 
 const totalSpots = 8;
 const gameLength = 30;
@@ -411,6 +454,8 @@ const positions = [
     [55, 52], [40, 58], [60, 60], [50, 66]
 ];
 
+        const starThresholds = [ 6, 16, 28, 42, 58, 76, 96, 118, 142, 168 ];
+
 totalDisplay.textContent = totalSpots;
 cleanedTurtlesDisplay.textContent = cleanedTurtles;
 bestTimeDisplay.textContent =
@@ -501,6 +546,7 @@ function endGame(won) {
         cleanedTurtles++;
         localStorage.setItem(cleanedTurtlesKey, cleanedTurtles);
         cleanedTurtlesDisplay.textContent = cleanedTurtles;
+        updateStarDisplay();
 
         if (bestTime === null || completionTime < bestTime) {
             bestTime = completionTime;
@@ -533,8 +579,24 @@ function endGame(won) {
     message.classList.remove("hidden");
 }
 
+ function updateStarDisplay() {
+     stars.forEach((star, index) => {
+         const isLit = cleanedTurtles >= starThresholds[index];
+
+         star.classList.toggle("lit", isLit);
+         star.setAttribute(
+             "aria-label",
+             isLit
+                 ? `Stjärna ${index + 1}, upplåst`
+                 : `Stjärna ${index + 1}, låses upp vid ${starThresholds[index].toLocaleString("sv-SE")} rengjorda sköldpaddor`
+         );
+     });
+ }
+
+        updateStarDisplay();
         updateTurtleAppearance();
         startButton.addEventListener("click", startGame);
-</script>
+        cleanedTurtlesDisplay.textContent = cleanedTurtles;
+    </script>
 </body>
 </html>
